@@ -13,7 +13,7 @@
 
 <div align="center">
   <a href="https://ropertunizar.github.io/BayesianActiveExploration/"><strong>🌍 Project page</strong></a> |
-  <strong>📝 Paper (coming soon)</strong>
+  <a href="https://arxiv.org/abs/2404.01867"><strong>📝 Paper</strong></a>
 </div>
 
 <p align="center">
@@ -25,6 +25,7 @@
 ## 🔔 News
 - 🆕 10/2026: Code released.
 - 🥳 10/2026: Paper accepted at ROBOT 2026.
+- 📝 04/2024: Preprint available on [arXiv](https://arxiv.org/abs/2404.01867).
 
 ---
 
@@ -118,8 +119,10 @@ This project is released under the [GNU AGPL v3](LICENSE.txt). The exploration p
 @inproceedings{plou2026activeexploration,
   title={Active Exploration in Bayesian Model-based Reinforcement Learning for Robot Manipulation},
   author={Plou, Carlos and Murillo, Ana C. and Martinez-Cantin, Ruben},
-  booktitle={ROBOT 2026},
-  year={2026}
+  booktitle={2026 9th Iberian Robotics Conference (ROBOT)},
+  organization={IEEE},
+  year={2026},
+  url={https://arxiv.org/abs/2404.01867}
 }
 ```
 
