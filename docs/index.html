@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Bayesian Active Exploration</title>
+  <meta name="description" content="Active exploration in Bayesian model-based reinforcement learning for robot manipulation: Laplace approximation and MC dropout dynamics models with an entropy-based information-gain utility.">
+  <meta name="keywords" content="model-based reinforcement learning, active exploration, bayesian deep learning, laplace approximation, mc dropout, robot manipulation, coppeliasim, rlbench">
+
+  <meta property="og:title" content="Active Exploration in Bayesian Model-based Reinforcement Learning for Robot Manipulation">
+  <meta property="og:description" content="Bayesian dynamics models (Laplace approximation, MC dropout) and an entropy-based utility for data-efficient, task-agnostic exploration. ROBOT 2026.">
+  <meta property="og:url" content="https://ropertunizar.github.io/BayesianActiveExploration/">
+  <meta property="og:image" content="https://ropertunizar.github.io/BayesianActiveExploration/img/teaser.png">
+  <meta property="og:type" content="website">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Active Exploration in Bayesian Model-based Reinforcement Learning for Robot Manipulation">
+  <meta name="twitter:description" content="Bayesian dynamics models (Laplace approximation, MC dropout) and an entropy-based utility for data-efficient, task-agnostic exploration. ROBOT 2026.">
+  <meta name="twitter:image" content="https://ropertunizar.github.io/BayesianActiveExploration/img/teaser.png">
+
+  <link rel="stylesheet" href="css/main.css">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+  <script src="js/main.js"></script>
+</head>
+<body>
+  <header>
+    <div class="venue">ROBOT 2026</div>
+
+    <h1 class="title" style="font-size: 44px; font-family: 'Google Sans', 'Roboto', sans-serif; margin-bottom: 0; text-align: center; line-height: 1.2;">
+      Active Exploration in Bayesian Model-based Reinforcement Learning for Robot Manipulation
+    </h1>
+
+    <p style="font-size: 24px; font-weight: 500; margin: 12px 0 5px 0; line-height: 1.4; text-align: center; font-family: 'Google Sans', 'Roboto', sans-serif; color: #555;">
+      Explore once, with a calibrated Bayesian model. Solve many tasks in simulation.
+    </p>
+  </header>
+
+  <div class="authors">
+      <span><a href="https://cplou99.github.io/web">Carlos Plou</a></span>
+      <span><a href="https://sites.google.com/unizar.es/anac">Ana C. Murillo</a></span>
+      <span><a href="https://webdiis.unizar.es/~rmcantin/">Ruben Martinez-Cantin</a></span>
+  </div>
+
+  <div class="affiliations">
+        <span>DIIS-I3A, Universidad de Zaragoza, Spain</span>
+  </div>
+
+  <div class="links">
+      <a class="disabled" title="Paper link coming soon">
+          <i class="ai ai-arxiv"></i>
+        Paper (soon)
+      </a>
+      <a href="https://github.com/ropertunizar/BayesianActiveExploration">
+          <i class="bi bi-github"></i>
+        Code
+      </a>
+  </div>
+
+<main>
+  <section class="content">
+    <style>
+    .links a {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 20px;
+    margin: 5px;
+    font-size: 16px;
+    color: white !important;
+    background-color: #444 !important;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+    gap: 8px;
+    }
+    .links a:hover { background-color: #222 !important; }
+    .links a.disabled { opacity: 0.55; cursor: default; }
+
+    .links a i {
+    margin-right: 5px;
+    }
+
+    h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5em;
+        margin-top: 0.5em;
+        text-align: center;
+        font-family: 'Google Sans', 'Roboto', sans-serif;
+        }
+
+    h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5em;
+        margin-top: 0.5em;
+        text-align: center;
+        font-family: 'Google Sans', 'Roboto', sans-serif;
+    }
+
+    body {
+        font-family: 'Google Sans', 'Roboto', sans-serif;
+        color: var(--text-color);
+        line-height: 1.5em;
+        font-weight: 400;
+        background-color: white;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 1rem;
+        font-size: 18px;
+    }
+
+    hr {
+        border: none;
+        height: 2px;
+        background-color: #444;
+        margin: 30px auto 0px auto;
+        opacity: 0.7;
+        width: 80%;
+    }
+
+    .sub-separator {
+        border: none;
+        height: 1px;
+        background-color: #666;
+        margin: 20px auto 5px auto;
+        opacity: 0.5;
+        width: 40%;
+    }
+
+    .teaser {
+        text-align: center;
+        margin: 20px auto;
+    }
+
+    .teaser img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    figcaption {
+        font-size: 15px;
+        color: #555;
+        line-height: 1.4em;
+        margin-top: 10px;
+        text-align: left;
+    }
+
+    /* videos */
+    .video-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin: 20px auto;
+    }
+    .video-grid figure { margin: 0; text-align: center; }
+    .video-grid video {
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        background: #000;
+    }
+    .video-grid figcaption { text-align: center; }
+
+    /* contributions */
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin: 20px 0;
+    }
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 16px 18px;
+        background: #fafafa;
+        font-size: 16px;
+        line-height: 1.45em;
+        text-align: left;
+    }
+    .card .num {
+        font-size: 28px;
+        font-weight: 700;
+        color: #c62828;
+    }
+    .card b { display: block; margin: 6px 0 6px 0; font-size: 17px; }
+
+    /* two-stage pipeline */
+    .pipeline {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 20px 0;
+    }
+    .stage {
+        border-radius: 12px;
+        padding: 14px 16px 18px 16px;
+        font-size: 16px;
+    }
+    .stage.explore { background: #eef3fb; border: 2px solid #3b6bb5; }
+    .stage.solve   { background: #eef7ee; border: 2px solid #3a8a3a; }
+    .stage h4 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        text-align: center;
+    }
+    .flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    .box {
+        background: white;
+        border: 2px solid #999;
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-weight: 700;
+        font-size: 15px;
+        white-space: nowrap;
+    }
+    .box.reward { background: #d32f2f; color: white; border-color: #d32f2f; }
+    .box.model  { border-color: #43a047; }
+    .box.policy { border-color: #f9a825; }
+    .box.robot  { border-color: #d81b9b; }
+    .arrow { color: #555; font-weight: 700; }
+    .step { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .loop { display: block; text-align: center; font-size: 14px; color: #3b6bb5; font-weight: 700; margin-bottom: 4px; }
+    .stage p { margin: 6px 0 0 0; line-height: 1.4em; }
+
+    /* legends */
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px 18px;
+        font-size: 15px;
+        margin: 6px 0 0 0;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i {
+        display: inline-block;
+        width: 22px;
+        height: 0;
+        border-top: 3px solid;
+    }
+    .legend i.dashed { border-top-style: dashed; }
+    .legend .group { font-weight: 700; }
+
+    /* table */
+    table.results {
+        border-collapse: collapse;
+        margin: 16px auto;
+        font-size: 16px;
+    }
+    table.results th, table.results td {
+        padding: 6px 16px;
+        border-bottom: 1px solid #ddd;
+        text-align: center;
+    }
+    table.results th { border-bottom: 2px solid #444; }
+    table.results tr.ours td:first-child { font-weight: 700; }
+    .best { font-weight: 700; color: #c62828; }
+
+    .math {
+        font-family: 'Cambria Math', 'Latin Modern Math', 'STIX Two Math', serif;
+        font-style: italic;
+    }
+    .eq {
+        text-align: center;
+        font-size: 19px;
+        margin: 14px 0;
+    }
+
+    pre { overflow-x: auto; }
+
+    @media (max-width: 800px) {
+        .video-grid, .cards, .pipeline { grid-template-columns: 1fr; }
+        h1.title { font-size: 30px !important; }
+        table.results { font-size: 14px; }
+        table.results th, table.results td { padding: 6px 8px; }
+    }
+</style>
+
+<hr>
+<h2 id="abstract">Abstract</h2>
+<p>Efficiently tackling multiple tasks within complex environments, such as those found in robot manipulation, remains an ongoing challenge in robotics and an opportunity for data-driven solutions such as reinforcement learning (RL). The high cost of data gathering in robotics encourages data-efficient approaches such as <strong>model-based RL</strong>, which builds a dynamic model of the robot to conduct most policy learning on cheaper simulations, while enabling data reuse and transfer between tasks. In this work, we employ <strong>Bayesian deep learning</strong> (BDL) with a double purpose. First, we increase the model quality by improving its calibration. Second, we improve data efficiency by performing <strong>active learning</strong> of the dynamic model during a preliminary exploration phase, actively estimating the information gain of each transition and using it as the exploration reward. We compare several BDL methods in a realistic robot manipulation setup. Our experiments show that our approach matches the quality of relevant alternatives with much lower robot execution requirements and, unlike previous studies validated only on standard RL environments, we tackle robotic arm end-tasks on a complete manipulator simulator such as CoppeliaSim.</p>
+
+<figure class="teaser">
+    <img src="img/teaser.png" alt="Overview: a Bayesian dynamics model predicts the next state and its novelty; an exploration policy maximises this utility to collect informative transitions, which are later reused to solve different manipulation tasks.">
+    <figcaption><strong>Overview.</strong> During active exploration, the Bayesian model predicts both the next-state distribution and how novel a transition is (the <em>utility</em>). A policy that maximises this utility collects the most informative data. The same task-agnostic model is then reused to solve different tasks, such as sliding a block to a target or pushing a button.</figcaption>
+</figure>
+
+<hr>
+<h2 id="videos">The Panda arm in CoppeliaSim</h2>
+<p>Task policies are learnt entirely inside the dynamics model, trained only on the exploration data, and then executed on the simulated Franka Emika Panda. The robot is controlled directly in <strong>joint velocities</strong> (|<span class="math">S</span>| = 43, |<span class="math">A</span>| = 8), so the model must also learn the arm's kinematics and dynamics.</p>
+<div class="video-grid">
+    <figure>
+        <video src="videos/push_button_1.mp4" autoplay muted loop playsinline preload="metadata"></video>
+        <figcaption>Push button</figcaption>
+    </figure>
+    <figure>
+        <video src="videos/push_button_2.mp4" autoplay muted loop playsinline preload="metadata"></video>
+        <figcaption>Push button, different target</figcaption>
+    </figure>
+    <figure>
+        <video src="videos/move_block.mp4" autoplay muted loop playsinline preload="metadata"></video>
+        <figcaption>Move block to target, after only 2k exploration steps</figcaption>
+    </figure>
+</div>
+<p style="font-size: 15px; color: #555; text-align: center;">Evaluation episodes of LapMCEnt (Laplace approximation + entropy utility).</p>
+
+<hr>
+<h2 id="contributions">Contributions</h2>
+<div class="cards">
+    <div class="card">
+        <div class="num">01</div>
+        <b>Active exploration for manipulation</b>
+        A demonstration of active learning and Bayesian deep learning for model-based RL on robotic arm end-tasks in a complete manipulator simulator (CoppeliaSim / RLBench), beyond standard RL benchmarks.
+    </div>
+    <div class="card">
+        <div class="num">02</div>
+        <b>Cheap Bayesian dynamics models</b>
+        The first validation of <strong>Monte Carlo dropout</strong> and the <strong>Laplace approximation</strong> for model building in MBRL. Both match deep ensembles with far less training time and memory.
+    </div>
+    <div class="card">
+        <div class="num">03</div>
+        <b>An entropy-based utility</b>
+        A novel information-based exploration utility from the Shannon entropy of the predictive distribution. It is more accurate and better calibrated with respect to the model errors.
+    </div>
+</div>
+
+<hr>
+<h2 id="method">Method</h2>
+<p style="text-align:left">We split learning into two stages. Exploration is <em>task-agnostic</em>: no task reward is used, so the collected data and the learnt model can be reused for any task in the same environment.</p>
+
+<div class="pipeline">
+    <div class="stage explore">
+        <h4>1 · Active exploration</h4>
+        <div class="flow">
+            <span class="box reward">Utility</span>
+            <span class="step"><span class="arrow">→</span> <span class="box">SAC</span></span><span class="step"><span class="arrow">→</span> <span class="box policy">Exploration policy</span></span><span class="step"><span class="arrow">→</span> <span class="box robot">Robot</span></span><span class="step"><span class="arrow">→</span> <span class="box">Buffer</span></span><span class="step"><span class="arrow">→</span> <span class="box model">Bayesian model</span></span>
+        </div>
+        <span class="loop">↻ the loop repeats every 25 steps, 20k real steps in total</span>
+        <p>After 256 random warm-up steps, the model is re-fitted every 25 steps. SAC then learns, <em>inside the model</em>, a policy that maximises the expected information gain, and the robot executes it to collect new transitions.</p>
+    </div>
+    <div class="stage solve">
+        <h4>2 · Solve the tasks</h4>
+        <div class="flow">
+            <span class="box">Buffer</span><span class="step"><span class="arrow">→</span> <span class="box model">Bayesian model</span></span><span class="step"><span class="arrow">→</span> <span class="box reward" style="background:#2e7d32;border-color:#2e7d32;">Task reward</span></span><span class="step"><span class="arrow">→</span> <span class="box">SAC</span></span><span class="step"><span class="arrow">→</span> <span class="box robot">Robot</span></span>
+        </div>
+        <p>For every task, a model is trained on the exploration buffer and SAC learns the task policy on simulated rollouts. Only the final evaluation episodes are executed on the robot.</p>
+    </div>
+</div>
+
+<hr class="sub-separator">
+<h3 id="bayesian-models">Bayesian dynamics models</h3>
+<p>The model predicts the next state as a Gaussian, <span class="math">p(s′ | s, a, θ) = 𝒩(μ<sub>θ</sub>(s, a), σ<sub>θ</sub>(s, a))</span>, which captures the <em>aleatoric</em> noise. To know <em>what the model does not know</em>, we also need the <em>epistemic</em> uncertainty over the weights, <span class="math">p(θ | 𝒟)</span>. We compare three approximations, each with <span class="math">N</span> = 32 posterior samples:</p>
+<ul>
+    <li><strong>Deep ensembles</strong> (MAX baseline): 32 independently trained networks. Accurate, but 32× the training cost and memory, and they cannot be pretrained or fine-tuned.</li>
+    <li><strong>MC dropout</strong>: a single network with dropout (<span class="math">p</span> = 0.25) kept active at inference, using 32 stochastic forward passes.</li>
+    <li><strong>Laplace approximation</strong>: a Gaussian posterior around the MAP weights, <span class="math">p(θ | 𝒟) ≈ 𝒩(θ<sub>MAP</sub>, H<sup>−1</sup>)</span>, fitted with <a href="https://github.com/aleximmer/Laplace">Laplace Redux</a> on a <em>subnetwork</em> of the 1k largest-magnitude weights. We draw 32 weight samples from it.</li>
+</ul>
+
+<hr class="sub-separator">
+<h3 id="utility">Exploration utility</h3>
+<p>The exploration reward is the expected information gain of a transition, i.e. how much observing it would change the model posterior. Following MAX, it is the Jensen–Shannon divergence between the posterior samples: the total predictive entropy minus the expected aleatoric entropy. It is high where the model <em>lacks information</em>, not where the data is merely noisy:</p>
+<p class="eq math">u(s, a) = ℋ( 𝔼<sub>θ</sub>[ p(s′ | s, a, θ) ] ) − 𝔼<sub>θ</sub>[ ℋ( p(s′ | s, a, θ) ) ]</p>
+<p>MAX approximates the first term, the entropy of a Gaussian mixture, with the Rényi entropy (α = 2). We instead <strong>moment-match the mixture with a single Gaussian</strong>. Assuming homoscedastic aleatoric noise, the utility then reduces to the log-determinant of the epistemic covariance. This <em>entropy metric</em> has a closed form for both the Laplace approximation and sample-based models:</p>
+<p class="eq math">u(s, a) ≐ log | 1/N Σ<sub>i</sub> μ<sub>θ<sub>i</sub></sub> μ<sub>θ<sub>i</sub></sub><sup>⊤</sup> − μ<sub>M</sub> μ<sub>M</sub><sup>⊤</sup> |</p>
+
+<hr>
+<h2 id="results">Results</h2>
+<p>We evaluate the exploration buffer every 2k steps by solving each task with a policy learnt in the model. Curves show the mean and standard deviation over 3 exploration runs. The dashed line is model-free SAC trained for 200k steps on <em>each task</em>, while our pipeline explores for only 20k steps <em>shared by all tasks</em>.</p>
+
+<hr class="sub-separator">
+<h3 id="halfcheetah">HalfCheetah (MuJoCo)</h3>
+<figure class="teaser">
+    <img src="img/results_halfcheetah.png" alt="Task return versus exploration steps on HalfCheetah running and flipping, for our Bayesian methods (top) and for state-of-the-art methods and baselines (bottom).">
+    <div class="legend">
+        <span class="group">Ours:</span>
+        <span><i style="border-color:red"></i>LapMCEnt</span>
+        <span><i style="border-color:orange"></i>LapMCRényi</span>
+        <span><i style="border-color:blue"></i>MCdropEnt</span>
+        <span><i style="border-color:purple"></i>MCdropRényi</span>
+    </div>
+    <div class="legend">
+        <span class="group">SOTA:</span>
+        <span><i style="border-color:limegreen"></i>MAX</span>
+        <span><i style="border-color:green"></i>EnsEnt</span>
+        <span><i class="dashed" style="border-color:#555"></i>SAC-200k</span>
+        <span class="group" style="margin-left:10px">Baselines:</span>
+        <span><i style="border-color:grey"></i>SAC</span>
+        <span><i style="border-color:gold"></i>PERX</span>
+        <span><i style="border-color:brown"></i>Random</span>
+    </div>
+    <figcaption>Bayesian active exploration clearly outperforms reactive (PERX) and random exploration. Laplace and MC-dropout models reach higher returns than deep ensembles, and <strong>LapMCEnt surpasses SAC-200k with an order of magnitude fewer environment steps</strong> (20k vs. 2 × 200k). Our entropy metric suits the Laplace model best, while ensembles fit better with the Rényi entropy.</figcaption>
+</figure>
+
+<hr class="sub-separator">
+<h3 id="panda">Panda robot (CoppeliaSim / RLBench)</h3>
+<figure class="teaser">
+    <img src="img/results_panda.png" alt="Task return versus exploration steps on the Panda push-button and move-block tasks.">
+    <div class="legend">
+        <span><i style="border-color:red"></i>LapMCEnt (ours)</span>
+        <span><i style="border-color:purple"></i>MCdropRényi (ours)</span>
+        <span><i style="border-color:limegreen"></i>MAX</span>
+        <span><i class="dashed" style="border-color:#555"></i>SAC-200k</span>
+        <span><i style="border-color:grey"></i>SAC</span>
+        <span><i style="border-color:gold"></i>PERX</span>
+    </div>
+    <figcaption>On the manipulator, Bayesian active exploration again outperforms the baselines and <strong>matches SAC-200k with fewer than 2k data points</strong>. Returns are summed over 3 evaluation episodes (100 per success). The Laplace approximation with our entropy metric is more robust on the harder, stochastic move-block task, and LapMCEnt reaches the highest average.</figcaption>
+</figure>
+
+<hr class="sub-separator">
+<h3 id="calibration">Calibration and computational cost</h3>
+<p>We measure calibration with the Area Under the Sparsification Error (AUSE) between the prediction errors and the utility. Each model is trained on the first 18k exploration transitions of HalfCheetah and tested on the last 2k.</p>
+<table class="results">
+    <thead>
+        <tr><th>Model</th><th>AUSE ↓</th><th>Training (s) ↓</th><th>Inference (s) ↓</th><th>Memory</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>MAX (32-ensemble)</td><td>0.075</td><td>122.75</td><td>6.25e-3</td><td>32×</td></tr>
+        <tr class="ours"><td>LapMCEnt (ours)</td><td class="best">0.048</td><td>39.98</td><td class="best">6.00e-3</td><td>2×</td></tr>
+        <tr class="ours"><td>MCdropRényi (ours)</td><td>0.085</td><td class="best">34.35</td><td>6.91e-3</td><td class="best">1×</td></tr>
+    </tbody>
+</table>
+<p>Memory is relative to a single MLP with about 1M weights (<span class="math">𝒪(n<sub>ens</sub> · n<sub>weights</sub> + n<sub>subnet</sub><sup>2</sup>)</span>). <strong>Our models match or exceed MAX while greatly reducing training time and memory</strong>, and the Laplace model with the entropy metric is also the best calibrated.</p>
+
+<hr>
+<h2 id="acknowledgments">Acknowledgments</h2>
+<p>This work was supported by a DGA scholarship, DGA project T45_23R, and by grants PID2024-159284NB-I00 and PID2024-158322OB-I00 funded by MCIN/AEI/10.13039/501100011033 and ERDF. The code builds on <a href="https://github.com/nnaisense/max">Model-Based Active Exploration (MAX)</a> and uses <a href="https://github.com/aleximmer/Laplace">Laplace Redux</a> and <a href="https://github.com/stepjam/RLBench">RLBench</a>.</p>
+
+<hr>
+<h2 id="bibtex">BibTeX</h2>
+<pre tabindex="0"><code>@inproceedings{plou2026activeexploration,
+      title={Active Exploration in Bayesian Model-based Reinforcement Learning for Robot Manipulation},
+      author={Plou, Carlos and Murillo, Ana C. and Martinez-Cantin, Ruben},
+      booktitle={ROBOT 2026},
+      year={2026}
+}
+</code></pre>
+  </section>
+</main>
+
+<footer>
+  <div style="text-align: center; margin: 40px 0 20px 0;">
+    <a href="https://www.unizar.es" target="_blank" style="margin: 0 20px;">
+      <img src="img/unizar_logo.png" alt="Universidad de Zaragoza" style="height: 120px; vertical-align: middle;">
+    </a>
+    <a href="https://i3a.unizar.es" target="_blank" style="margin: 0 20px;">
+      <img src="img/i3a_logo.jpg" alt="I3A" style="height: 80px; vertical-align: middle;">
+    </a>
+    <a href="https://ropert.i3a.es/" target="_blank" style="margin: 0 20px;">
+      <img src="img/ropert_logo.PNG" alt="RoPeRT Research Group" style="height: 80px; vertical-align: middle;">
+    </a>
+  </div>
+  <div style="text-align: center; margin-top: 10px;">
+    &copy; 2026 RoPeRT Research Group, Universidad de Zaragoza
+  </div>
+</footer>
+
+</body>
+</html>

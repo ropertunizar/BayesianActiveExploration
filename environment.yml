@@ -1,0 +1,26 @@
+# Environment used for the experiments of the paper (Python 3.8, PyTorch 1.12 + CUDA 11.3).
+# CoppeliaSim, PyRep and RLBench are installed separately, see the README.
+name: bae
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8.15
+  - pip=22.3.1
+  - setuptools=65.5.0
+  - ffmpeg=4.0
+  - pip:
+    - --extra-index-url https://download.pytorch.org/whl/cu113
+    - torch==1.12.1+cu113
+    - numpy==1.24.0
+    - scipy==1.9.3
+    - pandas==1.5.2
+    - matplotlib==3.6.2
+    - imageio==2.23.0
+    - gym==0.13.1
+    - mujoco-py==2.1.2.14
+    - sacred==0.8.2
+    - backpack-for-pytorch==1.5.2
+    - asdfghjkl==0.1a2
+    # laplace-torch from GitHub: the PyPI 0.1a2 release fails on subnetwork Laplace + marginal likelihood
+    - laplace-torch @ git+https://github.com/aleximmer/Laplace.git@826d14ab3266c9487ef2a94304ae2b31f00c23a7

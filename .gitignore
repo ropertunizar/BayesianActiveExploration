@@ -1,0 +1,31 @@
+__pycache__/
+*.py[cod]
+
+*.so
+
+.Python
+build/
+dist/
+eggs/
+.eggs/
+wheels/
+
+.env
+.venv
+env/
+venv/
+
+.DS_Store
+
+# experiments
+logs/
+plots/
+*.buffer
+*.mp4
+!docs/videos/*.mp4
+*.meta.json
+MUJOCO_LOG.TXT
+
+# IDEs
+.idea/
+.vscode/
